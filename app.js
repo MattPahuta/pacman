@@ -3,6 +3,7 @@ const width = 28;
 const grid = document.querySelector('.grid');
 const scoreDisplay = document.querySelector('#score');
 let squares = [];
+let score = 0;
 // 28 * 28 = 784
 
 // Board mechanics:
@@ -56,6 +57,8 @@ function createBoard() {
       squares[i].classList.add('pac-dot');
     } else if (layout[i] === 1) {
       squares[i].classList.add('wall');
+    } else if (layout[i] === 2) {
+      squares[i].classList.add('ghost-lair');
     } else if (layout[i] === 3) {
       squares[i].classList.add('power-pellet');
     }
@@ -76,32 +79,66 @@ function control(e) {
   switch (e.key) {
     case 'ArrowDown':
       console.log('down')
-      if (pacmanCurrentIndex + width < width * width && !squares[pacmanCurrentIndex + width].classList.contains('wall')) {
+      if (
+        pacmanCurrentIndex + width < width * width 
+        && !squares[pacmanCurrentIndex + width].classList.contains('wall') 
+        && !squares[pacmanCurrentIndex + width].classList.contains('ghost-lair')
+        ) {
         pacmanCurrentIndex += width;
       }
       break;
     case 'ArrowUp':
       console.log('up');
-      if (pacmanCurrentIndex - width >= 0 && !squares[pacmanCurrentIndex - width].classList.contains('wall')) {
+      if (
+        pacmanCurrentIndex - width >= 0 
+        && !squares[pacmanCurrentIndex - width].classList.contains('wall') 
+        && !squares[pacmanCurrentIndex - width].classList.contains('ghost-lair')
+        ) {
         pacmanCurrentIndex -= width;
       }
       break;
     case 'ArrowLeft':
       console.log('left');
-      if (pacmanCurrentIndex % width !== 0 && !squares[pacmanCurrentIndex - 1].classList.contains('wall')) {
+      if (
+        pacmanCurrentIndex % width !== 0 
+        && !squares[pacmanCurrentIndex - 1].classList.contains('wall')
+        && !squares[pacmanCurrentIndex - 1].classList.contains('ghost-lair')
+        ) {
         pacmanCurrentIndex -= 1;
+      }
+      if (pacmanCurrentIndex === 364) {
+        pacmanCurrentIndex = 391;
       }
       break;
     case 'ArrowRight':
       console.log('right')
-      if (pacmanCurrentIndex % width < width - 1 && !squares[pacmanCurrentIndex - + 1].classList.contains('wall')) {
+      if (
+        pacmanCurrentIndex % width < width - 1 
+        && !squares[pacmanCurrentIndex + 1].classList.contains('wall')
+        && !squares[pacmanCurrentIndex + 1].classList.contains('ghost-lair')
+        ) {
         pacmanCurrentIndex += 1;
+      }
+      if (pacmanCurrentIndex === 391) {
+        pacmanCurrentIndex = 364;
       }
       break;
     default:
       return;
   }
   squares[pacmanCurrentIndex].classList.add('pacman');
+  pacDotEaten();
 }
 
 document.addEventListener('keyup', control);
+
+// handle pac dots eaten by pac-man
+function pacDotEaten() {
+  if (squares[pacmanCurrentIndex].classList.contains('pac-dot')) {
+    squares[pacmanCurrentIndex].classList.remove('pac-dot');
+    score += 1;
+    scoreDisplay.innerText = score;
+  }
+}
+
+// make ghosts
