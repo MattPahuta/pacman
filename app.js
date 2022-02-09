@@ -4,11 +4,13 @@ const grid = document.querySelector('.grid');
 const scoreDisplay = document.querySelector('#score');
 let squares = [];
 // 28 * 28 = 784
-  // 0 - pac-dots
-  // 1 - wall
-  // 2 - ghost-lair
-  // 3 - power-pellet
-  // 4 - empty
+
+// Board mechanics:
+// 0 - pac-dots
+// 1 - wall
+// 2 - ghost-lair
+// 3 - power-pellet
+// 4 - empty
 const layout = [
   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
   1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -47,9 +49,59 @@ function createBoard() {
     const square = document.createElement('div');
     // insert to grid
     grid.appendChild(square);
-    squares.push(square);
+    squares.push(square); // push squares to squares array
+
+    // replace with switch statement?
+    if (layout[i] === 0) {
+      squares[i].classList.add('pac-dot');
+    } else if (layout[i] === 1) {
+      squares[i].classList.add('wall');
+    } else if (layout[i] === 3) {
+      squares[i].classList.add('power-pellet');
+    }
   }
 
 }
 
 createBoard();
+
+// Pac-Man starting position
+let pacmanCurrentIndex = 490;
+squares[pacmanCurrentIndex].classList.add('pacman');
+
+// Move Pac-Man
+function control(e) {
+  squares[pacmanCurrentIndex].classList.remove('pacman');
+
+  switch (e.key) {
+    case 'ArrowDown':
+      console.log('down')
+      if (pacmanCurrentIndex + width < width * width && !squares[pacmanCurrentIndex + width].classList.contains('wall')) {
+        pacmanCurrentIndex += width;
+      }
+      break;
+    case 'ArrowUp':
+      console.log('up');
+      if (pacmanCurrentIndex - width >= 0 && !squares[pacmanCurrentIndex - width].classList.contains('wall')) {
+        pacmanCurrentIndex -= width;
+      }
+      break;
+    case 'ArrowLeft':
+      console.log('left');
+      if (pacmanCurrentIndex % width !== 0 && !squares[pacmanCurrentIndex - 1].classList.contains('wall')) {
+        pacmanCurrentIndex -= 1;
+      }
+      break;
+    case 'ArrowRight':
+      console.log('right')
+      if (pacmanCurrentIndex % width < width - 1 && !squares[pacmanCurrentIndex - + 1].classList.contains('wall')) {
+        pacmanCurrentIndex += 1;
+      }
+      break;
+    default:
+      return;
+  }
+  squares[pacmanCurrentIndex].classList.add('pacman');
+}
+
+document.addEventListener('keyup', control);
