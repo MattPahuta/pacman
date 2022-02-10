@@ -128,6 +128,7 @@ function control(e) {
   }
   squares[pacmanCurrentIndex].classList.add('pacman');
   pacDotEaten();
+  powerPelletEaten();
 }
 
 document.addEventListener('keyup', control);
@@ -139,6 +140,26 @@ function pacDotEaten() {
     score += 1;
     scoreDisplay.innerText = score;
   }
+}
+
+// handle power-pellet eaten by pac-man
+function powerPelletEaten() {
+  // if square pacman is in contains a powe pellet
+  if (squares[pacmanCurrentIndex].classList.contains('power-pellet')) {
+    // remove power-pellet
+    squares[pacmanCurrentIndex].classList.remove('power-pellet');
+    // add a score of 10
+    score += 10;
+    // change each of the four ghosts to isScared 
+    ghosts.forEach(ghost => ghost.isScared = true)
+    // unscare ghosts after 10 secs
+    setTimeout(unScareGhosts, 10000)
+  }
+
+}
+
+function unScareGhosts() {
+  ghosts.forEach(ghost => ghost.isScared = false)
 }
 
 // make ghosts - 
@@ -179,9 +200,11 @@ function moveGhost(ghost) {
     
     if (
       !squares[ghost.currentIndex + direction].classList.contains('wall') &&
-      !squares[ghost.currentIndex + direction].classList.contains('ghost')) {
+      !squares[ghost.currentIndex + direction].classList.contains('ghost')
+      ) {
         squares[ghost.currentIndex].classList.remove(ghost.className); // remove ghost
-        squares[ghost.currentIndex].classList.remove('ghost'); // remove ghost
+        squares[ghost.currentIndex].classList.remove('ghost', 'scared-ghost'); // remove ghost
+
         ghost.currentIndex += direction; // add direction to current index
 
         squares[ghost.currentIndex].classList.add(ghost.className)
@@ -190,7 +213,24 @@ function moveGhost(ghost) {
       direction = directions[Math.floor(Math.random() * directions.length)]
     }
 
+    // if ghost is scared
+    if (ghost.isScared) {
+      squares[ghost.currentIndex].classList.add('scared-ghost');
+    }
+    // if pac-man strikes a scared ghost
+    if (ghost.isScared && squares[ghost.currentIndex].classList.contains('pacman')) {
+      // remove classnames = ghost.className, 'ghost', 'scared-ghost'
+      squares[ghost.currentIndex].classList.remove(ghost.className, 'ghost', 'scared-ghost')
+      // change ghosts currentIndex back to its startIndex
+      ghost.currentIndex = ghost.startIndex
+      // add a score of 100
+      score += 100
+      // re-add classnames of ghost.className and 'ghost' to ghosts new position
+      squares[ghost.currentIndex].classList.add(ghost.className, 'ghost')
+    }
+
 
   }, ghost.speed)
 }
+
 
