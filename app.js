@@ -1,10 +1,8 @@
-
 const width = 28;
 const grid = document.querySelector('.grid');
 const scoreDisplay = document.querySelector('#score');
 let squares = [];
 let score = 0;
-// 28 * 28 = 784
 
 // Board mechanics:
 // 0 - pac-dots
@@ -46,13 +44,10 @@ const layout = [
 // create game board
 function createBoard() {
   for (let i = 0; i < layout.length; i += 1) {
-    // create individual game square
     const square = document.createElement('div');
-    // insert to grid
     grid.appendChild(square);
     squares.push(square); // push squares to squares array
 
-    // replace with switch statement?
     if (layout[i] === 0) {
       squares[i].classList.add('pac-dot');
     } else if (layout[i] === 1) {
@@ -76,33 +71,30 @@ squares[pacmanCurrentIndex].classList.add('pacman');
 function control(e) {
   squares[pacmanCurrentIndex].classList.remove('pacman');
 
-  switch (e.key) {
+  switch (e.key) { // 40
     case 'ArrowDown':
-      console.log('down')
       if (
-        pacmanCurrentIndex + width < width * width 
-        && !squares[pacmanCurrentIndex + width].classList.contains('wall') 
-        && !squares[pacmanCurrentIndex + width].classList.contains('ghost-lair')
+        pacmanCurrentIndex + width < width * width && 
+        !squares[pacmanCurrentIndex + width].classList.contains('wall') && 
+        !squares[pacmanCurrentIndex + width].classList.contains('ghost-lair')
         ) {
         pacmanCurrentIndex += width;
       }
       break;
-    case 'ArrowUp':
-      console.log('up');
+    case 'ArrowUp': // 38
       if (
-        pacmanCurrentIndex - width >= 0 
-        && !squares[pacmanCurrentIndex - width].classList.contains('wall') 
-        && !squares[pacmanCurrentIndex - width].classList.contains('ghost-lair')
+        pacmanCurrentIndex - width >= 0 && 
+        !squares[pacmanCurrentIndex - width].classList.contains('wall') && 
+        !squares[pacmanCurrentIndex - width].classList.contains('ghost-lair')
         ) {
         pacmanCurrentIndex -= width;
       }
       break;
-    case 'ArrowLeft':
-      console.log('left');
+    case 'ArrowLeft': // 37
       if (
-        pacmanCurrentIndex % width !== 0 
-        && !squares[pacmanCurrentIndex - 1].classList.contains('wall')
-        && !squares[pacmanCurrentIndex - 1].classList.contains('ghost-lair')
+        pacmanCurrentIndex % width !== 0 && 
+        !squares[pacmanCurrentIndex - 1].classList.contains('wall') && 
+        !squares[pacmanCurrentIndex - 1].classList.contains('ghost-lair')
         ) {
         pacmanCurrentIndex -= 1;
       }
@@ -110,12 +102,11 @@ function control(e) {
         pacmanCurrentIndex = 391;
       }
       break;
-    case 'ArrowRight':
-      console.log('right')
+    case 'ArrowRight': // 39
       if (
-        pacmanCurrentIndex % width < width - 1 
-        && !squares[pacmanCurrentIndex + 1].classList.contains('wall')
-        && !squares[pacmanCurrentIndex + 1].classList.contains('ghost-lair')
+        pacmanCurrentIndex % width < width - 1 && 
+        !squares[pacmanCurrentIndex + 1].classList.contains('wall') && 
+        !squares[pacmanCurrentIndex + 1].classList.contains('ghost-lair')
         ) {
         pacmanCurrentIndex += 1;
       }
@@ -123,12 +114,13 @@ function control(e) {
         pacmanCurrentIndex = 364;
       }
       break;
-    default:
-      return;
   }
   squares[pacmanCurrentIndex].classList.add('pacman');
   pacDotEaten();
   powerPelletEaten();
+  checkGameOver();
+  checkForWin();
+
 }
 
 document.addEventListener('keyup', control);
@@ -144,25 +136,19 @@ function pacDotEaten() {
 
 // handle power-pellet eaten by pac-man
 function powerPelletEaten() {
-  // if square pacman is in contains a powe pellet
   if (squares[pacmanCurrentIndex].classList.contains('power-pellet')) {
-    // remove power-pellet
     squares[pacmanCurrentIndex].classList.remove('power-pellet');
-    // add a score of 10
     score += 10;
-    // change each of the four ghosts to isScared 
     ghosts.forEach(ghost => ghost.isScared = true)
-    // unscare ghosts after 10 secs
     setTimeout(unScareGhosts, 10000)
   }
-
 }
 
 function unScareGhosts() {
   ghosts.forEach(ghost => ghost.isScared = false)
 }
 
-// make ghosts - 
+// make ghosts
 class Ghost {
   constructor(className, startIndex, speed) {
     this.className = className
@@ -191,22 +177,17 @@ ghosts.forEach(ghost => {
 ghosts.forEach(ghost => moveGhost(ghost))
 
 function moveGhost(ghost) {
-  console.log('moved ghost')
   const directions = [-1, +1, -width, +width]
   let direction = directions[Math.floor(Math.random() * directions.length)]
-  console.log(direction);
 
   ghost.timerId = setInterval(function() {
-    
     if (
       !squares[ghost.currentIndex + direction].classList.contains('wall') &&
       !squares[ghost.currentIndex + direction].classList.contains('ghost')
       ) {
         squares[ghost.currentIndex].classList.remove(ghost.className); // remove ghost
         squares[ghost.currentIndex].classList.remove('ghost', 'scared-ghost'); // remove ghost
-
         ghost.currentIndex += direction; // add direction to current index
-
         squares[ghost.currentIndex].classList.add(ghost.className)
         squares[ghost.currentIndex].classList.add('ghost');
     } else {
@@ -219,18 +200,38 @@ function moveGhost(ghost) {
     }
     // if pac-man strikes a scared ghost
     if (ghost.isScared && squares[ghost.currentIndex].classList.contains('pacman')) {
-      // remove classnames = ghost.className, 'ghost', 'scared-ghost'
       squares[ghost.currentIndex].classList.remove(ghost.className, 'ghost', 'scared-ghost')
-      // change ghosts currentIndex back to its startIndex
       ghost.currentIndex = ghost.startIndex
-      // add a score of 100
       score += 100
-      // re-add classnames of ghost.className and 'ghost' to ghosts new position
       squares[ghost.currentIndex].classList.add(ghost.className, 'ghost')
     }
-
+    checkGameOver()
 
   }, ghost.speed)
 }
 
+// check for game over
+function checkGameOver() {
+  // game is lost
+  if (squares[pacmanCurrentIndex].classList.contains('ghost') &&
+      !squares[pacmanCurrentIndex].classList.contains('scared-ghost')
+      ) {
+        ghosts.forEach(ghost => clearInterval(ghost.timerId))
+        document.removeEventListener('keyup', control)
+        scoreDisplay.innerText = 'You Lose!'
+      }
 
+  clearInterval(moveGhost)
+}
+
+// check for game win
+function checkForWin() {
+  if (score === 274) {
+    // stop each ghost 
+    ghosts.forEach(ghost => clearInterval(ghost.timerId))
+    // remove event listener
+    document.removeEventListener('keyup', control)
+    // score update message
+    scoreDisplay.innerText = 'You Win!'
+  }
+}
